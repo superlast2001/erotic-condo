@@ -1,0 +1,328 @@
+'use strict';
+// Erotic Condo — game data. All character art is the user's own sheets, sliced (see assets/tools, assets/ares/*.py).
+const L=(t,e='smile')=>({t,e});
+const REL=['Stranger','Acquaintance','Friend','Close Friend','Crush','Dating','Engaged','Married'],REL_P=[0,8,24,50,85,130,190,260];
+const PLACE_N={home:'Home',gym:'Condo Gym',cafe:'Cafe Lumière',restaurant:'Restaurant Rosso',park:'City Park',fshop:'Condo Food Hall',club:'Night Club Neon',roof:'Roof Terrace'};
+
+// ---------------- TENANTS ----------------
+// sz: on-screen chibi height scale; walkFace: which way the sheet's walk frames face; thigh: fraction of the CG height at mid-thigh
+const TENANTS={
+Ares:{dir:'ares',cg:'cg_full_xl.webp',sitns:1,thigh:.60,
+ // the sheet's 8 full-body dialogue poses (picked by the line's mood); pthigh = fraction of the pose height at mid-thigh
+ poses:{talking:'pose_talking_hd.webp',laugh:'pose_laugh_hd.webp',teasing:'pose_teasing_hd.webp',embarrassed:'pose_embarrassed_hd.webp',angry:'pose_angry_hd.webp',thinking:'pose_thinking_hd.webp',surprised:'pose_surprised_hd.webp',serious:'pose_serious_hd.webp'},pthigh:.66,
+walkN:7,walkFace:'right',color:'#c8323c',plate:'GYM TRAINER',
+ icons:{heart:'icon_heart',happy:'icon_hearts',angry:'icon_angry',surprised:'icon_surprise',note:'icon_note'},
+ title:'Personal trainer · Condo Gym',likes:['gym','cardio'],foodLove:['steak','grill','bento','water'],foodHate:['wine','whiskey'],
+ bio:'Head trainer at Condo Gym. Loud, confident and a big brother to everyone he meets. His apartment is half bedroom, half home gym — he loves gym furniture.',
+ sched:[[0,'home'],[7,'gym'],[14,'home'],[18,'restaurant'],[20,'home']],
+ zones:[{id:'GYM',acts:['lift','squat','pull','punch'],desc:'Weights, racks and bags'},{id:'CARDIO',acts:['run','stretch'],desc:'Treadmill, bike, ball'},{id:'SOFA',acts:['sit','tv'],desc:'Somewhere to crash after leg day'}],
+ greet:[[L("Yo! You run this place? Name's Ares. Personal trainer down at Condo Gym.",'smile'),L("Don't worry, I only LOOK scary.",'teasing')],
+  [L("Boss! Looking sharp. Well... sharp-ish.",'teasing'),L("Kidding! You're alright, buddy.",'smile')],
+  [L("Did you skip leg day, boss? Ha! Relax, I'm only teasing.",'teasing'),L("Six clients before lunch today. Every one of them hit a new record!",'serious')],
+  [L("Anyone giving you trouble, boss? Point 'em out.",'serious'),L("I'll ask them REAL nicely to stop. With my best smile.",'teasing')],
+  [L("You keep dropping by... not that I'm complaining.",'blush'),L("My heart rate's up and I haven't even warmed up yet. Weird, huh?",'teasing')],
+  [L("There's my favourite person! C'mere, I saved you a protein bar.",'smile'),L("...Okay, I ate half. Bulking season, babe.",'teasing')],
+  [L("Still can't believe you said yes. I've been grinning at clients all day.",'blush'),L("They think I'm planning a brutal new workout. Let 'em think it.",'teasing')],
+  [L("Morning, partner. Breakfast's on the counter, coffee's hot.",'smile'),L("Best landlord, best spouse. I really hit the jackpot, huh?",'blush')]],
+ talks:[[L("Training people is my job, boss. Nobody leaves my class without a smile. Or sore legs.",'teasing')],
+  [L("Old Ben couldn't climb stairs when he started. Now he walks two kilometres a day.",'serious'),L("The tough-guy face? Just for show. The real job is making people believe in themselves.",'smile')],
+  [L("Spot me on this bench sometime. You'd be holding the bar like a baguette!",'laugh')],
+  [L("My big brother used to walk me home every night. Now I look out for the whole building.",'serious'),L("You're on my list too, boss. Nobody messes with my people.",'smile')],
+  [L("Rest days are important. I hate them. But they're important.",'sad')],
+  [L("Fun fact: I name all my dumbbells. The pink ones are Kevin.",'teasing')]],
+ out:{gym:[L("Boss! You came to train? Grab a mat — warm-up's five minutes, no excuses.",'smile')],restaurant:[L("Steak night! Pull up a chair, I'm buying. ...You're paying for dessert though.",'teasing')]},
+ use:{lift:[L("Count my reps for me! ...Eight, nine, TEN! Ha! Light work.",'laugh')],squat:[L("Squats: the king of exercises. Watch the form, boss.",'serious')],pull:[L("Pull-ups before breakfast. Builds character!",'smile')],punch:[L("Hah! The bag never hits back. That's why I like it.",'teasing')],run:[L("Cardio? Ugh. Fine. Five K, for you.",'sad')],stretch:[L("Stretching's not optional. Ow — okay, it IS painful.",'surprised')],sit:[L("Ahh... sofa time. Sit with me a minute, boss.",'smile')],tv:[L("The game's on! Come on, ref, open your eyes!",'angry')],sleep:[L("Lights out at ten, up at five. Recovery is gains, boss.",'serious')],bath:[L("A hot soak after leg day... this is heaven.",'blush')],read:[L("A book on sports nutrition. Riveting stuff. No, really!",'smile')],cook:[L("Chicken, rice, broccoli. Again. Gains don't come from pizza, boss.",'serious')]},
+ zoneL:{GYM:["A few dumbbells. It's a start, boss.","Now we're talking — a real bench!","This is better equipped than some gyms I've worked at.","Clients would pay to train in here.","Perfect. My own temple of iron. Thank you, boss."],
+  CARDIO:["Cardio corner? It's a corner.","Okay, I'll admit the ball is fun.","Warm-ups at home now. Nice.","I can do full HIIT circuits in here!","Best cardio setup in the Condo. Even I want to run now."],
+  SOFA:["One seat. Spartan. I like it.","Comfy. Dangerously comfy.","Movie nights at mine, boss!","I might never leave this sofa.","Peak comfort. Rest day approved."]},
+ confess:[L("Boss... can I be real with you for a sec?",'serious'),L("I train people all day. I tell 'em to be brave, push past the fear.",'serious'),L("And here I am, scared stiff of four little words.",'blush'),L("I really like you. Not as a landlord. As... you. Will you go out with me?",'blush'),L("...YES?! Ha! Okay! Okay. I'm cool. I'm totally cool.",'laugh')],
+ propose:[L("Wait — is that a ring? For ME?",'surprised'),L("Of course I'll marry you! C'mere!",'laugh'),L("I'm gonna carry you over every doorway in this building.",'blush')],
+ wed:[L("We did it. Married! My big brother would've cried. ...I'm not crying, you're crying.",'blush')],
+ fedLove:[L("Steak?! You get me, boss. You really get me.",'laugh')],fedOk:[L("Thanks, buddy. Fuel is fuel!",'smile')],fedHate:[L("Booze? I'm in season, boss... I'll pass.",'sad')]},
+
+Zayne:{dir:'zayne',cg:'cg_hd.webp',thigh:.585,walkN:8,walkFace:'left',color:'#48eaff',plate:'DJ · CYBORG',
+ icons:{happy:'icon_happy',angry:'icon_angry',surprised:'icon_surprised',blush:'icon_blush',note:'icon_smile'},
+ title:'Masked cyborg · DJ at Night Club Neon',likes:['studio','lounge'],foodLove:['coffee','juice','sushi'],foodHate:['hotpot','rice'],
+ bio:'A masked cyborg who spins the decks at Night Club Neon. Speaks softly through the mask, reads people like data and never takes the visor off. Lives in the DJ Neon Penthouse.',
+ sched:[[0,'club'],[3,'home'],[13,'cafe'],[15,'home'],[21,'club']],
+ zones:[{id:'STUDIO',acts:['tv','read'],desc:'Decks, screens and desks'},{id:'LOUNGE',acts:['sit'],desc:'Sofas for the after-party'},{id:'BAR',acts:['fridge','cook'],desc:'Fridge and bar counter'}],
+ greet:[[L("...Scan complete. You are the landlord. Designation: Zayne.",'serious'),L("I keep odd hours. I will not disturb you. Probably.",'normal')],
+  [L("Landlord. Your footsteps are 3% lighter today. Good mood?",'smile')],
+  [L("I made a mix last night. I named one track after this building.",'smile'),L("It is called 'Rent Is Due'. It slaps.",'teasing')],
+  [L("My visor flags most humans as noise. You... are signal.",'serious')],
+  [L("Warning: core temperature rising. Cause: you. ...Ignore that readout.",'blush')],
+  [L("I cleared my set list tonight. Every track is for you.",'smile'),L("Come to the club. I will wave. Discreetly. With lasers.",'teasing')],
+  [L("Engagement protocol active. I have backed it up to three servers.",'blush')],
+  [L("Good morning, spouse. I calibrated the coffee machine to your exact preference.",'smile'),L("Seventy-two degrees. Two sugars. I love you.",'blush')]],
+ talks:[[L("The mask stays on. It is not a secret. It is a choice.",'serious')],
+  [L("Bass at 40 hertz makes a whole room breathe together. That is the only magic I believe in.",'smile')],
+  [L("My left arm is from a scrapyard in Osaka. My right arm is from a better scrapyard.",'teasing')],
+  [L("People ask if I feel things. I feel EVERYTHING. That is why I wear headphones.",'sad')],
+  [L("I sleep in charging mode. Please do not unplug me again.",'angry')],
+  [L("I dropped a remix and the whole floor screamed. Best night of my life. This week.",'laugh')]],
+ out:{club:[L("Landlord! You came. Stand near the speakers — the bass is better there.",'laugh')],cafe:[L("Iced coffee. Triple shot. My servos demand it.",'smile')]},
+ use:{tv:[L("Monitoring three streams and a movie. Multitasking is my love language.",'smile')],read:[L("Sampling vinyl. The crackle is what makes it human.",'serious')],sit:[L("Sofa mode. Fans quiet. Sit.",'smile')],sleep:[L("Entering sleep cycle. Wake me if the music stops.",'normal')],bath:[L("Waterproof rating IP68. I tested it. Repeatedly.",'teasing')],cook:[L("I cooked. The smoke alarm reviewed it poorly.",'surprised')],lift:[L("Hydraulics make this cheating. I do it anyway.",'teasing')],run:[L("Running diagnostics. Literally. On the treadmill.",'smile')],squat:[L("Squats. My knee servos are screaming in binary.",'surprised')],pull:[L("Pull-ups: easy. Grip strength: industrial.",'smile')],punch:[L("I punched the bag a little too hard. Sorry, bag.",'surprised')],stretch:[L("Flexibility check: 94%. Acceptable.",'normal')]},
+ zoneL:{STUDIO:["One screen. Mono. Tragic.","Stereo achieved.","I can produce a full track here now.","The setup hums like a starship.","This studio is perfect. I could play the world from here."],
+  LOUNGE:["A seat. For guests. Hypothetical guests.","After-party capacity: two.","The crew wants to come over now.","Lounge is officially vibe-certified.","Best lounge in Roppongi... wait, wrong building. Best in the Condo."],
+  BAR:["Fridge detected. Contents: one battery.","Cold drinks online.","I can mix a cocktail now. Probably.","Bar status: open for regulars.","Full bar. You are my favourite regular."]},
+ confess:[L("Landlord. I have run this calculation ten thousand times.",'serious'),L("Every result returns the same value.",'serious'),L("I... like you. Romantically. My visor cannot hide that anymore.",'blush'),L("Will you be my partner? Input: yes or yes.",'teasing'),L("...Affirmative received. My fans are spinning. Do not look.",'blush')],
+ propose:[L("A ring. Detecting... my heart. It is overclocking.",'surprised'),L("Yes. A thousand times, yes. Saving to permanent memory.",'blush')],
+ wed:[L("Married. I played our song at the club. Everyone cried. Including me. Through the mask.",'blush')],
+ fedLove:[L("Caffeine. You understand my firmware.",'laugh')],fedOk:[L("Calories accepted. Thank you.",'smile')],fedHate:[L("This substance is... incompatible with my systems.",'sad')]},
+
+Batzz:{dir:'batzz',cg:'cg_hd.webp',thigh:.60,walkN:8,walkFace:'right',color:'#e0203c',plate:'DEMON LORD',
+ icons:{happy:'icon_happy',angry:'icon_angry',surprised:'icon_surprised',blush:'icon_blush',note:'icon_smile'},
+ title:'Proud demon lord dragon',likes:['gym','throne'],foodLove:['steak','grill','paella','pizza','hotpot'],foodHate:['water','juice'],
+ bio:'A prideful demon lord dragon who once led the Thunder Empire. Arrogant, loud and hot-tempered — and secretly a softie who would never admit it. A big eater. Lives in a black-and-crimson palace of a home.',
+ sched:[[0,'home'],[7,'gym'],[10,'home'],[12,'restaurant'],[14,'home'],[16,'park'],[19,'home'],[21,'club'],[23,'home']],
+ zones:[{id:'GYM',acts:['lift','squat','pull','punch','run','stretch'],desc:'A demon lord must stay mighty'},{id:'THRONE',acts:['sit','tv'],desc:'Somewhere fit for a king to lounge'},{id:'BATH',acts:['bath'],desc:'The royal bath'}],
+ greet:[[L("Hah! So YOU are the puny human who owns this tower?",'teasing'),L("I am Batzz, the Demon Lord Dragon! Bow, and I may let you collect rent.",'laugh')],
+  [L("Oh. It's you again. ...Hmph. I wasn't waiting for you or anything.",'angry')],
+  [L("Human! You have permission to stand in my presence. Briefly.",'teasing'),L("...Fine. Stay longer. It's boring without anyone to boss around.",'normal')],
+  [L("You're not as weak as you look. That's a compliment! Don't make it weird!",'angry')],
+  [L("Wh-why are you looking at me like that?! A demon lord does NOT blush!",'blush')],
+  [L("You. Come here. Sit beside me. That's an order. ...Please.",'blush')],
+  [L("Engaged to a demon lord. You should be honoured. ...I'm honoured too. Don't tell anyone.",'blush')],
+  [L("My consort! The kingdom — er, the building — is at peace today.",'smile'),L("I made breakfast. It's mostly meat. You're welcome.",'laugh')]],
+ talks:[[L("I once ruled the Thunder Empire! Everyone feared me!",'laugh'),L("...I also used to do laundry for the higher dragons. FORGET I SAID THAT.",'angry')],
+  [L("Lowly humans think a gym is for exercise. For me, it is for DOMINANCE.",'teasing')],
+  [L("Don't trust anyone completely. Not even me. ...Well. Maybe me. A little.",'serious')],
+  [L("I could see through that delivery guy's disguise instantly. He was the mailman. Still suspicious.",'serious')],
+  [L("I'm hungry. Feed me. NOW. ...I'll say thank you if you're fast.",'angry')],
+  [L("Everyone who mocked me will see. I'll be the strongest dragon there ever was!",'laugh')]],
+ out:{gym:[L("Watch, human! Witness the strength of a demon lord!",'laugh')],restaurant:[L("Bring everything on the menu. Twice. You're paying, landlord!",'teasing')],park:[L("The pond ducks fear me. As they should.",'teasing')],club:[L("The music is too loud. ...I'm not leaving though.",'normal')]},
+ use:{lift:[L("Pathetic weights! Bring HEAVIER ones!",'laugh')],squat:[L("A demon lord's legs are pillars of the earth!",'teasing')],pull:[L("Up! Up! Hah, this is nothing!",'laugh')],punch:[L("Take THAT! ...The bag broke. Buy another.",'angry')],run:[L("Running is beneath me. I'll fly next time.",'angry')],stretch:[L("Flexibility is a weapon too. ...Ow. My tail.",'surprised')],sit:[L("My throne. Kneel. Or sit. Sitting is fine.",'teasing')],tv:[L("Why is the human on screen crying? ...I'm not crying. There's dust.",'sad')],sleep:[L("Even a demon lord must rest. Guard my sleep, human.",'normal')],bath:[L("Rose petals. Gold taps. Finally, a bath befitting royalty.",'blush')],read:[L("A history of dragons. They got everything about me wrong.",'angry')],cook:[L("I cooked! It's on fire. That's how dragons like it.",'laugh')]},
+ zoneL:{GYM:["One weight? Is this a joke?","Hmph. Barely adequate.","Now I can train properly!","Worthy of a lord's training hall.","A war camp of iron! Magnificent, human!"],
+  THRONE:["A chair. Not a throne. Try harder.","A sofa. Acceptable for a duke.","Now THIS is lounging.","My subjects may visit. Briefly.","A throne room fit for the Thunder Emperor himself!"],
+  BATH:["A bucket? You insult me.","Water. Warm. Acceptable.","A real tub! Hah!","Petals and candles... you understand royalty.","The royal baths are restored! You have my favour!"]},
+ confess:[L("Human. Listen carefully because I will only say this ONCE.",'angry'),L("I have lived for centuries. Kings, wars, seals... none of it mattered like this.",'serious'),L("I... I like you! There! Happy?!",'blush'),L("You will be mine. ...If you want to. You can say no. DON'T say no.",'blush'),L("Hah! Of course you said yes! Who could refuse a demon lord?!",'laugh')],
+ propose:[L("A ring?! You dare propose to the Demon Lord Dragon?!",'surprised'),L("...Yes. YES. I accept! Tell the whole city!",'laugh')],
+ wed:[L("We are wed! Let the heavens thunder! ...That was me. I'm happy.",'laugh')],
+ fedLove:[L("MEAT! Finally, food worthy of me! More!",'laugh')],fedOk:[L("Hmph. It'll do. ...Thanks.",'normal')],fedHate:[L("Water? WATER?! I'm a dragon, not a houseplant!",'angry')]},
+
+Ophion:{dir:'ophion',cg:'cg_hd.webp',thigh:.61,walkN:8,walkFace:'right',color:'#e8b020',plate:'DETECTIVE',
+ icons:{happy:'icon_happy',angry:'icon_angry',surprised:'icon_surprised',blush:'icon_blush',note:'icon_happy'},
+ title:'Private detective · Roppongi suite',likes:['study','dining'],foodLove:['sushi','noodles','wine','hotpot'],foodHate:['pizza','sauce'],
+ bio:'A golden dragon private detective who moved in from Roppongi. Calm, sharp-eyed and always three steps ahead. His black-and-gold dragon suite doubles as his office.',
+ sched:[[0,'home'],[9,'park'],[12,'cafe'],[13,'home'],[19,'restaurant'],[21,'home']],
+ zones:[{id:'STUDY',acts:['read'],desc:'Desk, files and books'},{id:'LOUNGE',acts:['sit','tv'],desc:'For thinking cases through'},{id:'DINING',acts:['fridge','cook'],desc:'Kitchen and dining'}],
+ greet:[[L("Mm. You're the owner. Left-handed, two coffees this morning, and you took the stairs.",'serious'),L("Ophion. Private detective. Don't worry — I only investigate people who pay me.",'smile')],
+  [L("Evening. Your shoes say you've been to the park. Your smile says it went well.",'smile')],
+  [L("A client tried to lie to me today. Badly. I solved it before the tea cooled.",'teasing')],
+  [L("I don't usually let people see my notes. You may look. Just don't touch the red string.",'serious')],
+  [L("Curious. My pulse rises whenever you visit. I've ruled out every other suspect.",'blush')],
+  [L("Dinner tonight? I've already booked the table. I deduced you'd say yes.",'teasing')],
+  [L("Case closed: I get to spend my life with you. The best verdict I've ever reached.",'blush')],
+  [L("Good morning, love. I made tea and solved the crossword. Both are yours.",'smile')]],
+ talks:[[L("Every room has a story. This building's is mostly about you.",'smile')],
+  [L("Roppongi was loud. Here I can hear myself think.",'serious')],
+  [L("I solved a jewel heist by noticing a cat hair. The cat was the accomplice.",'teasing')],
+  [L("The wings? They're terrible in elevators.",'sad')],
+  [L("Don't lie to me. I'll know. ...But I'll pretend I don't, if it's a kind lie.",'serious')],
+  [L("Hah! You tried to surprise me. Adorable.",'laugh')]],
+ out:{park:[L("Shh. Stakeout. That pigeon has been acting suspicious all morning.",'serious')],cafe:[L("Green tea, no sugar. Sit — I'll tell you about the case. The non-classified parts.",'smile')],restaurant:[L("They do the best sashimi in the Condo. I investigated personally.",'smile')]},
+ use:{read:[L("Case file 117. The butler didn't do it. The butler never does.",'serious')],sit:[L("A good sofa is where cases get solved. Join me.",'smile')],tv:[L("Crime dramas. I yell at the detectives. They're always wrong.",'angry')],sleep:[L("Even detectives sleep. One eye open.",'normal')],bath:[L("Gold taps. Hot water. My finest thinking spot.",'blush')],cook:[L("I cook like I investigate: precisely, and with too much garlic.",'teasing')],lift:[L("Exercise clears the mind. And the wings need it.",'serious')],run:[L("Chasing suspects requires cardio. Unfortunately.",'sad')],squat:[L("Strong legs for long stakeouts.",'serious')],pull:[L("The wings make pull-ups... interesting.",'surprised')],punch:[L("Self-defence practice. Some suspects don't come quietly.",'angry')],stretch:[L("Stretch the wings, stretch the mind.",'smile')]},
+ zoneL:{STUDY:["A single folder. Even I can't work like this.","A desk. Now I can think.","Files sorted, books shelved. Better.","My office is complete. Clients will be impressed.","The finest study in the city. Thank you."],
+  LOUNGE:["One chair. For interrogations.","A couch. For thinking.","Comfortable. Suspiciously comfortable.","A lounge worthy of Roppongi.","Perfect. I'll solve every case right here."],
+  DINING:["The fridge is empty. A mystery.","Basics stocked.","A proper kitchen. I can cook again.","Dinner parties are possible now.","An exquisite dining room. You have taste."]},
+ confess:[L("I've solved hundreds of cases. This one took me the longest.",'serious'),L("The evidence: I look for you in every room. I save you the good tea.",'smile'),L("Conclusion: I'm in love with you.",'blush'),L("Will you be with me? I'm rarely nervous... but I am now.",'blush'),L("...Thank you. I had a ninety percent prediction. That ten percent was terrifying.",'laugh')],
+ propose:[L("A ring. I didn't see this coming. Truly — a first.",'surprised'),L("Yes. A thousand times. Case closed, forever.",'blush')],
+ wed:[L("Married. I'll write this case down in gold ink.",'blush')],
+ fedLove:[L("Sushi. You've been investigating me, haven't you?",'smile')],fedOk:[L("Thank you. Most kind.",'smile')],fedHate:[L("Ah. Pizza. I'll... deduce a polite way to decline.",'sad')]},
+};
+const TENANT_ORDER=['Ares','Zayne','Batzz','Ophion'];
+const FIND_COST=[0,30,60,90];
+
+// ---------------- ROOMS ----------------
+// type 'tile': an empty apartment shell built on an iso tile grid (floors = the furniture sheet's floor textures),
+//   zones = rooms [u0,v0,w,h], doors = tile pairs that are open between rooms, entry = where tenants come and go.
+// type 'paint': the user's painted apartment kept as-is, with a hand-authored walkable tile grid laid over it (zones are lists
+//   of rects); the furniture painted into the art becomes "spots" tenants walk to and use. No extra sprites are stacked on top.
+const TW=90,tileO=(cols,rows,WH)=>[rows*TW/2+40,WH+60],tileWH=(cols,rows,WH)=>[(cols+rows)*TW/2+80,WH+60+(cols+rows)*TW/4+40];
+const ROOMS_THEMED={
+Ares:{type:'tile',name:'Ares Apartment',cols:12,rows:10,TW,WH:150,LH:30,ch:122,z:.0,
+ theme:{bg:'#140e13',wall:'#4a3a44',trim:'#d9a45e',lowWall:'#5a4652'},
+ zones:{K:{n:'Kitchen',r:[0,0,6,5],tex:'t00',wall:'#53414a'},G:{n:'Bedroom & home gym',r:[6,0,6,5],tex:'t13',wall:'#3f3a4c'},L:{n:'Living room',r:[0,5,6,5],tex:'t10'},
+  S:{n:'Study',r:[6,5,3,5],tex:'t22'},W:{n:'Bathroom',r:[9,5,3,5],tex:'t01'}},
+ doors:[[5,2,6,2],[4,4,4,5],[5,7,6,7],[8,7,9,7],[7,4,7,5],[10,4,10,5]],
+ entry:{t:[0,7],out:[-1,0],side:'L',img:'double'},
+ windows:[['R',3,2],['R',7,2],['L',1,2]],
+ zoneLabel:{GYM:[7.2,3.4],CARDIO:[10.6,3.9],SOFA:[3.6,8.9]},
+ defFurn:[{k:'bed',u:10,v:0},{k:'sofa_red',u:1,v:5},{k:'table_coffee',u:1,v:7},{k:'fridge',u:1,v:0},{k:'toilet',u:11,v:5},{k:'sink',u:9,v:5},{k:'bench_black',u:7,v:1}]},
+Zayne:{type:'tile',name:'DJ Neon Penthouse',cols:12,rows:10,TW,WH:150,LH:30,ch:122,
+ theme:{bg:'#07070e',wall:'#1d1b34',trim:'#48eaff',lowWall:'#25213e',neon:'#c15aff'},
+ zones:{B:{n:'Bedroom',r:[0,0,4,6],tex:'t03',glow:'#b35cff'},D:{n:'DJ studio',r:[4,0,5,4],tex:'t32',glow:'#48eaff'},K:{n:'Bar kitchen',r:[9,0,3,6],tex:'t11',glow:'#48eaff'},
+  Lg:{n:'Lounge',r:[4,4,5,6],tex:'t32',glow:'#c15aff'},W:{n:'Bathroom',r:[0,6,4,4],tex:'t33',glow:'#3ac8ff'},E:{n:'Entrance',r:[9,6,3,4],tex:'t31',glow:'#8e65bc'}},
+ doors:[[3,1,4,1],[8,1,9,1],[6,3,6,4],[1,5,1,6],[8,7,9,7],[10,5,10,6],[3,5,4,5]],
+ entry:{t:[11,8],out:[1,0],side:'F'},
+ windows:[['R',5,3],['L',2,2],['L',7,2]],
+ zoneLabel:{STUDIO:[6.5,1.4],LOUNGE:[6.5,7],BAR:[10.5,2.6]},
+ defFurn:[{k:'bed',u:1,v:0},{k:'desk',u:5,v:0},{k:'sofa_grey',u:4,v:4},{k:'table_coffee',u:4,v:6},{k:'fridge',u:10,v:0},{k:'toilet',u:2,v:6},{k:'sink',u:3,v:6}]},
+Batzz:{type:'paint',img:'assets/batzz/room_hd.jpg',W:1536,H:1024,ch:118,name:'Batzz Palace',z:.62,cols:40,rows:40,O:[768,-380],eu:[40,21.33],ev:[-40,21.33],
+ zones:{B:{n:'Bedroom',rs:[[13,19,2,6],[10,25,5,2],[10,18,4,1]]},C:{n:'Closet',rs:[[10,16,3,2]]},G:{n:'Home gym',rs:[[15,12,2,8],[17,16,3,2]]},
+  L:{n:'Lounge',rs:[[19,19,3,2],[22,20,3,2],[22,22,2,1],[22,18,1,2],[25,20,4,1],[25,21,1,3]]},K:{n:'Kitchen',rs:[[20,16,3,1],[22,17,9,1],[26,16,4,1],[27,12,1,4],[30,18,1,1]]},
+  H:{n:'Hall',rs:[[23,24,3,4],[24,28,2,3],[26,27,6,4]]},W:{n:'Bathroom',rs:[[20,28,4,3]]}},
+ doors:[[11,18,11,17],[14,19,15,19],[19,16,20,16],[22,17,22,18],[25,23,25,24],[24,29,23,29]],
+ entry:{t:[28,30],out:[0,1]},
+ spots:[{n:'Dragon bed',act:'sleep',pose:'sleep',t:[13,21],at:[10.6,22.2]},{n:'Black sectional',act:'sit',pose:'sit',t:[19,20],at:[17.9,21.2],face:'left'},
+  {n:'Dumbbell rack',act:'lift',pose:'flex',t:[15,14]},{n:'Punching bag',act:'punch',pose:'punch',t:[16,12]},{n:'Weight bench',act:'lift',pose:'flex',t:[17,16]},
+  {n:'Black fridge',act:'fridge',pose:'front',t:[27,12]},{n:'Kitchen island',act:'cook',pose:'front',t:[24,17]},
+  {n:'Rose-petal tub',act:'bath',pose:'bath',t:[20,30],at:[17.2,30.5],clip:.5},{n:'Vanity',act:'wash',pose:'front',t:[20,28]}],
+ zoneLabel:{GYM:[15.5,10],THRONE:[19,19.6],BATH:[19,28.5]}},
+Ophion:{type:'paint',img:'assets/ophion/room_hd.jpg',W:1536,H:1024,ch:112,name:'Roppongi Dragon Suite',z:.62,cols:40,rows:40,O:[768,-380],eu:[40,21.33],ev:[-40,21.33],
+ zones:{B:{n:'Bedroom',rs:[[13,19,2,6],[10,25,5,2],[10,18,4,1]]},C:{n:'Closet',rs:[[10,17,3,1],[12,15,2,2]]},S:{n:'Study',rs:[[14,15,1,1],[15,15,3,1],[17,14,3,2]]},
+  K:{n:'Kitchen & dining',rs:[[20,15,6,2],[25,11,2,4]]},L:{n:'Lounge',rs:[[20,17,2,2],[21,19,1,2],[22,19,3,5]]},H:{n:'Hall',rs:[[25,23,3,4],[24,28,2,2],[26,27,6,4]]},W:{n:'Bathroom',rs:[[20,28,4,3]]}},
+ doors:[[11,18,11,17],[13,15,14,15],[19,15,20,15],[20,16,20,17],[24,23,25,23],[23,29,24,29]],
+ entry:{t:[28,30],out:[0,1]},
+ spots:[{n:'Dragon bed',act:'sleep',pose:'sleep',t:[13,21],at:[10.6,22.2]},{n:'Leather sofa',act:'sit',pose:'sit',t:[21,19],at:[17.8,20.5],face:'left'},
+  {n:'Case desk',act:'read',pose:'front',t:[17,14]},{n:'Steel fridge',act:'fridge',pose:'front',t:[25,11]},{n:'Kitchen island',act:'cook',pose:'front',t:[22,15]},
+  {n:'Spa tub',act:'bath',pose:'bath',t:[20,30],at:[18,30.5],clip:.5},{n:'Vanity',act:'wash',pose:'front',t:[21,28]}],
+ zoneLabel:{STUDY:[16,12],LOUNGE:[21,18.5],DINING:[25,12.5]}},
+};
+// ---- v0.3.4: the user's DEFAULT APARTMENT. Same look and the same close-up scale as v0.3.2 (orange walls, white wall caps, dark
+// skirting, glossy cream tiles, yellow curtains, glass front door, blue-tiled bathroom with the walk-in glass shower), but a much larger
+// flat to explore by panning: 26x20 grid, 474 floor tiles (v0.3.2: 179) in seven walled rooms joined by doorways.
+// Rooms: Balcony · Living room · Entrance hall & corridor · Kitchen & dining · Study · Bedroom · Bathroom.
+// Starter flats are nearly empty, as in v0.3.2 (bed, walk-in shower, sink, fridge); everything else is bought in the shop and placed.
+// Interior walls are cut-away so every room stays readable; tenants only cross between rooms through doorways.
+// The tenants' old themed rooms stay in ROOMS_THEMED: set ROOM_STYLE='themed' to switch back.
+const ROOM_STYLE='default';
+const APT_V=5,APT_V2_DEF=['bed_apt','sink','fridge'];
+// v0.3.3 auto-placed starter sets: only used to tell starter pieces from purchases when migrating v0.3.3 saves
+const APT_V3_BASE=['sunbed','parasol','table_patio','chair_patio','chair_patio','lemon_tree','planter_box','tv_modern','shelf_low','plant_big','lamp_modern','rug_round','table_coffee','sofa_honey','armchair_teal','beanbag','table_side',
+ 'clock_tall','plant_palm','plant','counter_white','stove','fridge','counter_white','table_wood','chair_dining','chair_dining','chair_dining','chair_dining','chair_dining','plant','bed_apt','nightstand','nightstand','wardrobe_honey','rug_stripe',
+ 'dresser','mirror_floor','lamp_floor','monstera','vanity','toilet','bathtub','washer','towel_rack'];
+const APT_V3_STUDY={Ares:['treadmill','bench_black','ball','kettlebell','plant'],Zayne:['desk_modern','arcade','speaker','shelf_low','beanbag'],Batzz:['speedbag','bench_black','armchair','dumbbells','plant'],Ophion:['desk_modern','caseboard','bookshelf','globe','cabinet_file']};
+const aptV3Def=n=>[...APT_V3_BASE,...(APT_V3_STUDY[n]||[])];
+const APT_DEF=[['shower_glass',24,12,0,1],['bed_apt',16,12],['sink',20,14,1],['fridge',20,0]];
+// v0.3.5: Ophion's flat comes furnished with the Dragon Suite (Luxury) pieces, spread over his rooms; his shower stays built in
+const APT_DEF_OPH=[['shower_glass',24,12,0,1],['sink',20,14,1],['fridge',20,0],
+ // living room: grand bookcase, folding screen, rug, chesterfield, wingback, low table, chandelier, statue, lanterns
+ ['lux_shelf',7,0],['lux_screen',10,0],['lux_rug',7,3],['lux_table',8,4],['lux_sofa',8,6,2],['lux_armchair',11,4,3],['lux_chandelier',8,4],['lux_lantern',5,0],['lux_lantern',13,0],['lux_bonsai',5,7],
+ // hall: dragon statue by the front door
+ ['lux_statue',16,1],
+ // kitchen & dining: bar, lacquer dining set
+ ['lux_bar',22,0],['lux_table',20,4],['lux_chair',20,3],['lux_chair',21,3],['lux_chair',20,5,2],['lux_chair',21,5,2],['lux_chandelier',20,4],
+ // study: grand piano, second bookcase, lantern
+ ['lux_piano',7,15],['lux_shelf',4,16,1],['lux_lantern',10,12],['lux_bonsai',4,19],
+ // bedroom: dragon bed, lanterns, rug, wardrobe, vanity
+ ['lux_bed',16,12],['lux_lantern',15,12],['lux_lantern',18,12],['lux_rug',15,15],['lux_wardrobe',11,15,1],['lux_vanity',19,17,3],['lux_chandelier',16,16],
+ // bathroom: gold claw-foot tub
+ ['lux_tub',22,16],
+ // balcony
+ ['lux_bonsai',0,0],['lux_lantern',0,9]];
+function aptRoom(n){const T=ROOMS_THEMED[n];
+ return{type:'tile',style:'apt',name:n+"'s Apartment",cols:26,rows:20,TW,WH:150,LH:30,ch:122,z:0,z0:.6,backU:4,backV:2,
+ theme:{bg:'#efe7dc',wall:'#f39a22',trim:'#ffffff',lowWall:'#f08f1c',base:'#4b4a52'},
+ zones:{B:{n:'Balcony',rs:[[0,0,4,10]],floor:'deck'},L:{n:'Living room',rs:[[4,0,10,9]],floor:'cream'},H:{n:'Hallway',rs:[[14,0,3,9],[4,9,22,3]],floor:'cream'},
+  K:{n:'Kitchen & dining',rs:[[17,0,9,9]],floor:'check'},S:{n:'Study',rs:[[4,12,7,8]],floor:'walnut'},R:{n:'Bedroom',rs:[[11,12,9,8]],floor:'wood'},W:{n:'Bathroom',rs:[[20,12,6,7]],floor:'blue'}},
+ doors:[[3,3,4,3],[3,4,4,4],[13,3,14,3],[7,8,7,9],[8,8,8,9],[9,8,9,9],[16,4,17,4],[20,8,20,9],[21,8,21,9],[6,11,6,12],[14,11,14,12],[21,11,21,12]],
+ // tall partitions: the balcony's glass sliding doors (u-line 4) and the tiled shower wall behind the walk-in shower (v-line 12)
+ tallU:[{u:4,v0:0,v1:10,kind:'glass',doors:[3,4]}],tall:[{v:12,u0:24,u1:26,kind:'tile'}],
+ entry:{t:[15,0],out:[0,-1],side:'R',img:'glass'},
+ openView:{side:'L',line:0,v0:0,v1:10},ac:{side:'R',line:0,v0:7,v1:10},windows:[{side:'R',line:0,s0:22,s1:24},{side:'L',line:4,s0:15,s1:17}],drain:[22.6,16.6],
+ themed:T,defFurn:(n=='Ophion'?APT_DEF_OPH:APT_DEF).map(([k,u,v,r=0,fixed])=>fixed?{k,u,v,r,fixed:1}:{k,u,v,r})};}
+const ROOMS={};for(const n of ['Ares','Zayne','Batzz','Ophion'])ROOMS[n]=ROOM_STYLE=='themed'?ROOMS_THEMED[n]:aptRoom(n);
+for(const RR of [ROOMS,ROOMS_THEMED])for(const n in RR){const R=RR[n];if(R.type=='tile'){R.O=tileO(R.cols,R.rows,R.WH);[R.W,R.H]=tileWH(R.cols,R.rows,R.WH);}}
+
+// ---------------- FURNITURE (each piece cut from the furniture sheet with SAM + Real-ESRGAN; see assets/tools/furn_sam.py) ----------------
+// act: what a tenant does with it; cat: shop tab. Footprints / use points live in world.js (FDEF).
+const FURN={
+fridge:{n:'White fridge',cat:'Kitchen',p:60,act:'fridge'},fridge2:{n:'Twin-door fridge',cat:'Kitchen',p:80,act:'fridge'},counter:{n:'Kitchen counter',cat:'Kitchen',p:50,act:'cook'},
+sofa_red:{n:'Red velvet sofa',cat:'Living',p:70,act:'sit'},sofa_cream:{n:'Cream sofa',cat:'Living',p:65,act:'sit'},sofa_grey:{n:'Grey sofa',cat:'Living',p:55,act:'sit'},sofa_black:{n:'Black leather sofa',cat:'Living',p:75,act:'sit'},
+armchair:{n:'Red armchair',cat:'Living',p:35,act:'sit'},tv:{n:'Big TV + console',cat:'Living',p:90,act:'tv'},table_coffee:{n:'Coffee table',cat:'Living',p:30},
+rug_red:{n:'Red rug',cat:'Living',p:25},lamp_floor:{n:'Brass floor lamp',cat:'Living',p:18},
+bed:{n:'Double bed',cat:'Bedroom',p:90,act:'sleep'},bed_apt:{n:'Cosy honey bed',cat:'Bedroom',p:80,act:'sleep'},bed_grey:{n:'Grey king bed',cat:'Bedroom',p:120,act:'sleep'},wardrobe_wood:{n:'Wood wardrobe',cat:'Bedroom',p:45},wardrobe_black:{n:'Black wardrobe',cat:'Bedroom',p:50},
+bathtub:{n:'White bathtub',cat:'Bath',p:70,act:'bath'},shower_glass:{n:'Glass shower (built-in)',cat:'Bath',p:0,act:'shower',fixed:1,noshop:1},shower:{n:'Glass shower',cat:'Bath',p:80,act:'shower'},toilet:{n:'Toilet',cat:'Bath',p:30,act:'toilet'},sink:{n:'Pedestal sink',cat:'Bath',p:25,act:'wash'},vanity:{n:'Bathroom vanity',cat:'Bath',p:40,act:'wash'},
+desk:{n:'Desk & chair',cat:'Study',p:55,act:'read'},chair_red:{n:'Red chair',cat:'Study',p:20,act:'sit'},bookshelf:{n:'Tall bookshelf',cat:'Study',p:60,act:'read'},bookcase_red:{n:'Red bookcase',cat:'Study',p:60,act:'read'},
+treadmill:{n:'Treadmill',cat:'Gym',p:110,act:'run'},machine_red:{n:'Cardio machine',cat:'Gym',p:100,act:'run'},bench_black:{n:'Weight bench',cat:'Gym',p:45,act:'lift'},bench_blue:{n:'Flat bench',cat:'Gym',p:30,act:'lift'},
+kettlebell:{n:'Kettlebell',cat:'Gym',p:15,act:'lift'},dumbbells:{n:'Dumbbell rack',cat:'Gym',p:85,act:'lift'},speaker:{n:'Speaker stack',cat:'Living',p:140,act:'dance'},pullup:{n:'Pull-up tower',cat:'Gym',p:70,act:'pull'},speedbag:{n:'Speed bag stand',cat:'Gym',p:35,act:'punch'},ball:{n:'Exercise ball',cat:'Gym',p:12,act:'stretch'},lockers:{n:'Red gym lockers',cat:'Gym',p:40},
+plant:{n:'Leafy plant',cat:'Decor',p:18},plant_palm:{n:'Potted palm',cat:'Decor',p:22},plant_big:{n:'Big potted palm',cat:'Decor',p:25},palm:{n:'Palm in white pot',cat:'Decor',p:22},roses:{n:'Red-flower plant',cat:'Decor',p:24},
+statue_white:{n:'Marble statue',cat:'Decor',p:70},armor:{n:'Red armour',cat:'Decor',p:85},lamp_warm:{n:'Warm floor lamp',cat:'Decor',p:20},
+// ---- v0.3.3 additions (painted in furnart2.js). Prices run basic (£8-40) → standard (£40-120) → premium (£120-400) → LUXURY (£600+).
+nightstand:{n:'Honey nightstand + lamp',cat:'Bedroom',p:28},wardrobe_honey:{n:'Mirrored honey wardrobe',cat:'Bedroom',p:95,act:'dress'},dresser:{n:'Cream dresser',cat:'Bedroom',p:70},
+bed_single:{n:'Single bed',cat:'Bedroom',p:45,act:'sleep'},mirror_floor:{n:'Standing mirror',cat:'Bedroom',p:35,act:'dress'},
+sofa_teal:{n:'Teal sofa',cat:'Living',p:85,act:'sit'},sofa_honey:{n:'Honey sofa',cat:'Living',p:90,act:'sit'},armchair_teal:{n:'Teal armchair',cat:'Living',p:40,act:'sit'},
+beanbag:{n:'Pink beanbag',cat:'Living',p:20,act:'sit'},table_side:{n:'Round side table',cat:'Living',p:18},rug_round:{n:'Round cream rug',cat:'Living',p:22},rug_stripe:{n:'Striped rug',cat:'Living',p:26},
+tv_modern:{n:'Smart TV + white console',cat:'Living',p:140,act:'tv'},lamp_modern:{n:'Arc floor lamp',cat:'Living',p:45},shelf_low:{n:'Low bookshelf',cat:'Living',p:55,act:'read'},
+aquarium:{n:'Aquarium',cat:'Living',p:180,act:'watch'},arcade:{n:'Arcade cabinet',cat:'Living',p:220,act:'game'},fireplace:{n:'Electric fireplace',cat:'Living',p:260},
+stove:{n:'Stove & oven',cat:'Kitchen',p:75,act:'cook'},counter_white:{n:'White kitchen counter',cat:'Kitchen',p:65,act:'cook'},island:{n:'Teal kitchen island',cat:'Kitchen',p:150,act:'cook'},
+table_wood:{n:'Oak dining table',cat:'Kitchen',p:80,act:'eat'},chair_dining:{n:'Dining chair',cat:'Kitchen',p:22,act:'eat'},
+desk_modern:{n:'White desk + monitor',cat:'Study',p:110,act:'read'},chair_office:{n:'Office chair',cat:'Study',p:35,act:'sit'},cabinet_file:{n:'Filing cabinet',cat:'Study',p:30,act:'read'},
+caseboard:{n:'Detective case board',cat:'Study',p:48,act:'read'},globe:{n:'Desk globe',cat:'Study',p:24},
+washer:{n:'Washing machine',cat:'Bath',p:90,act:'wash'},towel_rack:{n:'Towel rack',cat:'Bath',p:16},laundry_basket:{n:'Laundry basket',cat:'Bath',p:8},
+monstera:{n:'Monstera plant',cat:'Decor',p:28},cactus:{n:'Little cactus',cat:'Decor',p:10},vase_flowers:{n:'Flowers on a plinth',cat:'Decor',p:34},clock_tall:{n:'Grandfather clock',cat:'Decor',p:120},
+sunbed:{n:'Sun lounger',cat:'Balcony',p:60,act:'sunbathe'},table_patio:{n:'Patio table',cat:'Balcony',p:30,act:'eat'},chair_patio:{n:'Patio chair',cat:'Balcony',p:18,act:'sit'},parasol:{n:'Striped parasol',cat:'Balcony',p:40},
+bbq:{n:'Kettle barbecue',cat:'Balcony',p:55,act:'cook'},planter_box:{n:'Flower planter',cat:'Balcony',p:32},lemon_tree:{n:'Potted lemon tree',cat:'Balcony',p:38},
+lux_bed:{n:'Dragon King bed',cat:'Luxury',p:2400,act:'sleep',lux:1},lux_sofa:{n:'Black chesterfield sofa',cat:'Luxury',p:1200,act:'sit',lux:1},lux_armchair:{n:'Crimson velvet wingback',cat:'Luxury',p:650,act:'sit',lux:1},
+lux_shelf:{n:'Grand gilded bookcase',cat:'Luxury',p:1500,act:'read',lux:1},lux_chandelier:{n:'Gold crystal chandelier',cat:'Luxury',p:1900,lux:1},lux_rug:{n:'Gold dragon rug',cat:'Luxury',p:800,lux:1},
+lux_statue:{n:'Golden dragon statue',cat:'Luxury',p:1800,lux:1},lux_table:{n:'Black marble dining table',cat:'Luxury',p:1400,act:'eat',lux:1},lux_chair:{n:'Lacquer dining chair',cat:'Luxury',p:420,act:'eat',lux:1},
+lux_tub:{n:'Rose-petal spa tub',cat:'Luxury',p:2200,act:'bath',lux:1},lux_wardrobe:{n:'Lacquer dragon wardrobe',cat:'Luxury',p:1300,act:'dress',lux:1},lux_lantern:{n:'Gilded floor lantern',cat:'Luxury',p:600,lux:1},
+lux_screen:{n:'Dragon folding screen',cat:'Luxury',p:900,lux:1},lux_bonsai:{n:'Bonsai in a gold pot',cat:'Luxury',p:700,lux:1},lux_piano:{n:'Black grand piano',cat:'Luxury',p:3000,act:'play',lux:1},
+lux_bar:{n:'Lacquer bar cabinet',cat:'Luxury',p:1600,act:'drink',lux:1},lux_vanity:{n:'Marble & gold vanity',cat:'Luxury',p:950,act:'wash',lux:1},
+ring:{n:'Engagement ring',cat:'Special',p:500,item:1},
+};
+const TIER=p=>p>=600?'Luxury':p>=120?'Premium':p>=40?'Standard':'Basic';
+const FURN_CATS=['Living','Bedroom','Kitchen','Bath','Study','Balcony','Decor','Gym','Luxury','Special'];
+// v0.3.5: the food & drink menu (art painted in code by foodart.js). cat drives the shop tabs; old save keys are kept.
+const FOOD_CATS=['Meals','Snacks','Desserts','Drinks','Coffee & Tea','Bubble Tea','Bar'];
+const FOOD={
+ noodles:{n:'Ramen bowl',p:6,cat:'Meals'},hotpot:{n:'Hot pot',p:9,cat:'Meals'},grill:{n:'Grill platter',p:12,cat:'Meals'},paella:{n:'Paella',p:10,cat:'Meals'},sushi:{n:'Sushi set',p:11,cat:'Meals'},
+ steak:{n:'Steak plate',p:14,cat:'Meals'},bento:{n:'Bento box',p:7,cat:'Meals'},pizza:{n:'Pizza slice',p:4,cat:'Meals'},rice:{n:'Rice bowl',p:3,cat:'Meals'},curry:{n:'Curry rice',p:8,cat:'Meals'},
+ omurice:{n:'Omurice',p:8,cat:'Meals'},burger:{n:'Cheeseburger',p:7,cat:'Meals'},pasta:{n:'Tomato pasta',p:9,cat:'Meals'},dumplings:{n:'Steamed dumplings',p:6,cat:'Meals'},
+ onigiri:{n:'Onigiri',p:3,cat:'Snacks'},sandwich:{n:'Club sandwich',p:5,cat:'Snacks'},fries:{n:'Fries',p:3,cat:'Snacks'},croissant:{n:'Croissant',p:3,cat:'Snacks'},popcorn:{n:'Popcorn',p:3,cat:'Snacks'},
+ taiyaki:{n:'Taiyaki',p:4,cat:'Snacks'},jar:{n:'Pickle jar',p:3,cat:'Snacks'},sauce:{n:'Hot sauce',p:2,cat:'Snacks'},
+ cake:{n:'Strawberry shortcake',p:6,cat:'Desserts'},chococake:{n:'Chocolate cake',p:6,cat:'Desserts'},donut:{n:'Sprinkle donut',p:3,cat:'Desserts'},macarons:{n:'Macarons',p:7,cat:'Desserts'},
+ icecream:{n:'Ice cream cone',p:4,cat:'Desserts'},pudding:{n:'Custard pudding',p:4,cat:'Desserts'},cupcake:{n:'Cupcake',p:4,cat:'Desserts'},parfait:{n:'Strawberry parfait',p:7,cat:'Desserts'},
+ crepe:{n:'Strawberry crêpe',p:5,cat:'Desserts'},mochi:{n:'Mochi trio',p:5,cat:'Desserts'},chocobox:{n:'Chocolate box',p:12,cat:'Desserts'},
+ water:{n:'Water bottle',p:1,cat:'Drinks'},juice:{n:'Orange juice',p:3,cat:'Drinks'},applejuice:{n:'Apple juice',p:3,cat:'Drinks'},lemonade:{n:'Lemonade',p:3,cat:'Drinks'},
+ smoothie:{n:'Berry smoothie',p:5,cat:'Drinks'},soda:{n:'Cola',p:2,cat:'Drinks'},energy:{n:'Energy drink',p:3,cat:'Drinks'},milk:{n:'Milk carton',p:2,cat:'Drinks'},
+ coffee:{n:'Coffee cup',p:2,cat:'Coffee & Tea'},latte:{n:'Caffè latte',p:4,cat:'Coffee & Tea'},icecoffee:{n:'Iced coffee',p:4,cat:'Coffee & Tea'},matcha:{n:'Matcha latte',p:5,cat:'Coffee & Tea'},
+ greentea:{n:'Green tea',p:3,cat:'Coffee & Tea'},blacktea:{n:'Breakfast tea',p:3,cat:'Coffee & Tea'},hotchoc:{n:'Hot chocolate',p:4,cat:'Coffee & Tea'},
+ boba_milk:{n:'Classic milk tea',p:5,cat:'Bubble Tea'},boba_taro:{n:'Taro milk tea',p:6,cat:'Bubble Tea'},boba_matcha:{n:'Matcha boba',p:6,cat:'Bubble Tea'},boba_brown:{n:'Brown sugar boba',p:6,cat:'Bubble Tea'},
+ boba_mango:{n:'Mango popping boba',p:6,cat:'Bubble Tea'},boba_straw:{n:'Strawberry milk boba',p:6,cat:'Bubble Tea'},
+ wine:{n:'Red wine',p:9,cat:'Bar'},whiskey:{n:'Whiskey',p:12,cat:'Bar'},cocktail:{n:'Pink cocktail',p:10,cat:'Bar'},beer:{n:'Draught beer',p:5,cat:'Bar'},sake:{n:'Sake',p:8,cat:'Bar'}};
+const SHOP_FOOD={cafe:['coffee','latte','icecoffee','matcha','greentea','blacktea','hotchoc','boba_milk','boba_taro','boba_brown','croissant','sandwich','cake','cupcake','crepe','donut','juice','water'],
+ restaurant:['steak','sushi','paella','grill','hotpot','pasta','curry','omurice','dumplings','rice','pudding','wine','whiskey','sake'],
+ club:['whiskey','wine','cocktail','beer','sake','soda','energy','juice','water','popcorn','fries']};
+// favourite foods (give bonus hearts when fed). v0.3.5 only ADDS to each tenant's existing loves; nothing about them is changed.
+const FOOD_FAV_ADD={Ares:['smoothie','onigiri'],Zayne:['energy','boba_taro','icecoffee'],Batzz:['burger','chococake'],Ophion:['matcha','sake','macarons']};
+for(const n in FOOD_FAV_ADD){const T=TENANTS[n];T.foodLove=[...new Set([...T.foodLove,...FOOD_FAV_ADD[n]])];}
+
+// ---------------- PLACES (10x10 tile interiors; props are sheet sprites placed on tiles: unmirrored fronts face down-left, r:1 faces down-right) ----------------
+// entry: the exit door tile (left wall, tile 0,8). The lobby elevator is at the back-right wall tile (6,0).
+const F=(k,u,v,r=0)=>({k,u,v,r});
+const EXIT={t:[0,8],out:[-1,0]};
+const PLACES={
+lobby:{n:'Erotic Condo · Lobby',wall:['#b95f43','#a84f3d'],trim:'#f0d3ae',tex:'t02',sign:'EROTIC CONDO',entry:EXIT,elev:{t:[6,0],out:[0,-1]},
+ props:[F('plant_big',0,0),F('desk',2,0),F('palm',9,0),F('lamp_warm',4,0),F('sofa_cream',0,3,1),F('table_coffee',2,3,1),F('armchair',2,2),F('plant',0,6,1),F('roses',9,4)],
+ hot:[{id:'elevator',n:'Elevator',kind:'door'},{id:'exit',n:'Front door',kind:'exit'},{id:'desk',n:'Reception',t:[3,2],kind:'desk'}]},
+gym:{n:'Condo Gym',wall:['#4a5468','#3a4254'],trim:'#d6dbe6',tex:'t23',sign:'LUMEN GYM',entry:EXIT,
+ props:[F('treadmill',1,0),F('treadmill',4,0),F('machine_red',7,0),F('lockers',9,0),F('pullup',0,2,1),F('speedbag',0,4,1),F('lockers',0,6,1),
+  F('bench_black',3,4),F('kettlebell',6,4),F('ball',8,4),F('rug_red',5,6),F('bench_blue',2,7),F('plant_big',0,0)],
+ hot:[{id:'exit',n:'Exit',kind:'exit'},{id:'train',n:'Train together',t:[5,8],kind:'train'}]},
+cafe:{n:'Cafe Lumière',wall:['#e9c9a0','#d9b48a'],trim:'#fff4dc',tex:'t12',sign:'CAFE LUMIÈRE',entry:EXIT,
+ props:[F('counter',2,0),F('fridge2',4,0),F('lamp_warm',6,0),F('plant_palm',9,0),F('plant',0,5,1),F('table_coffee',5,5),F('chair_red',5,4),F('chair_red',6,4),F('chair_red',4,5,1),
+  F('table_coffee',6,8),F('chair_red',6,7),F('chair_red',7,7),F('armchair',9,6)],
+ hot:[{id:'exit',n:'Exit',kind:'exit'},{id:'counter',n:'Order counter',t:[3,1],kind:'food'}]},
+restaurant:{n:'Restaurant Rosso',wall:['#7a1f2a','#661a24'],trim:'#e8c88a',tex:'t21',sign:'RISTORANTE ROSSO',entry:EXIT,
+ props:[F('counter',2,0),F('bookcase_red',0,1,1),F('lamp_warm',5,0),F('statue_white',9,0),F('roses',0,5,1),F('table_coffee',5,3),F('chair_red',5,2),F('chair_red',6,2),F('chair_red',4,3,1),
+  F('table_coffee',5,7),F('chair_red',5,6),F('chair_red',6,6),F('chair_red',4,7,1),F('roses',9,4),F('plant_big',9,1)],
+ hot:[{id:'exit',n:'Exit',kind:'exit'},{id:'counter',n:'Order from the menu',t:[3,1],kind:'food'}]},
+park:{n:'City Park',outdoor:1,sign:'CITY PARK',entry:EXIT,
+ props:[F('palm',0,0),F('statue_white',2,1),F('plant_big',9,0),F('bench_blue',3,6),F('bench_blue',6,7),F('roses',0,5,1),F('roses',9,5),F('lamp_warm',6,4),F('plant',0,7,1),F('palm',9,8)],
+ hot:[{id:'exit',n:'Exit',kind:'exit'},{id:'stroll',n:'Pond path',t:[5,3],kind:'stroll'}]},
+fshop:{n:'Condo Food Hall',wall:['#f6e6c8','#ead2aa'],trim:'#d8603a',tex:'t12',sign:'LUMEN FOOD HALL',entry:EXIT,
+ props:[F('counter_white',2,0),F('counter_white',4,0),F('fridge2',6,0),F('lamp_warm',8,0),F('island',2,2),F('plant_big',9,0),F('table_wood',5,5),F('chair_dining',5,4),F('chair_dining',6,4),F('chair_dining',5,6,2),F('chair_dining',6,6,2),
+  F('table_patio',8,7),F('chair_patio',8,6),F('vase_flowers',0,3,1),F('plant',0,6,1),F('monstera',9,9)],
+ hot:[{id:'exit',n:'Exit',kind:'exit'},{id:'shop',n:'Food & drink counter',t:[3,4],kind:'shop'}]},
+club:{n:'Night Club Neon',wall:['#1c1630','#151026'],trim:'#c15aff',tex:'t32',sign:'CLUB NEON',neon:1,entry:EXIT,dance:[3,3,5,5],
+ props:[F('djbooth',2,1),F('speaker',1,1),F('speaker',6,1),F('counter',8,0),F('barstool',8,1),F('barstool',9,1),F('sofa_black',0,3,1),F('table_coffee',1,3,1),F('armchair',0,6,1),F('plant_palm',9,2),F('speaker',9,6,1)],
+ hot:[{id:'exit',n:'Exit',kind:'exit'},{id:'dance',n:'Dance floor',t:[5,5],kind:'dance'},{id:'counter',n:'Bar',t:[8,2],kind:'food'}]},
+roof:{n:'Roof Terrace',outdoor:1,roof:1,sign:'ROOF TERRACE',entry:EXIT,
+ props:[F('sunbed',1,0),F('sunbed',3,0),F('parasol',2,0),F('table_patio',3,4),F('chair_patio',2,4,1),F('chair_patio',4,4,3),F('bbq',1,7,1),F('planter_box',8,0),F('lemon_tree',9,2),
+  F('table_patio',7,5),F('chair_patio',7,4),F('chair_patio',7,6,2),F('lux_lantern',9,5),F('planter_box',0,2,1),F('plant_big',9,9),F('lux_bonsai',5,0)],
+ hot:[{id:'exit',n:'Stairs down',kind:'exit'},{id:'stroll',n:'Skyline view',t:[6,2],kind:'stroll'}]},
+};
+const TRAVEL=['gym','cafe','restaurant','park','fshop','club','roof'];
+const PLACE_DESC={gym:'Train with tenants · Ares coaches here',cafe:'Coffee, bento & snacks',restaurant:'Steak, sushi & dinner',park:'Fresh air & stakeouts',fshop:'Meals, desserts, bubble tea & more',club:'Zayne DJs 9 PM – 3 AM',roof:'Building common area · sunbeds, BBQ & skyline'};

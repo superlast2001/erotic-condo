@@ -14,7 +14,7 @@ body{min-height:100vh;background:radial-gradient(90% 60% at 50% 0,#3a1a4d 0,#150
 h1{font-family:"Playfair Display",Georgia,serif;font-size:clamp(2.6rem,10vw,4.6rem);line-height:1;margin:16px 0 6px;background:linear-gradient(135deg,#ffd9e6,#ff4d85 55%,#f4c15a);-webkit-background-clip:text;background-clip:text;color:transparent;letter-spacing:.01em}
 .tag{color:#c9bbdb;font-size:1.08rem;margin:0 auto 20px;max-width:520px;line-height:1.5}
 .faces{display:flex;justify-content:center;gap:8px;margin:18px 0 8px}
-.faces img{width:19%;max-width:128px;aspect-ratio:3/4;object-fit:cover;object-position:50% 12%;border-radius:14px;border:2px solid #ffffff44;box-shadow:0 8px 24px #000a}
+.faces img{width:22%;max-width:128px;aspect-ratio:3/4;object-fit:cover;object-position:50% 12%;border-radius:14px;border:2px solid #ffffff44;box-shadow:0 8px 24px #000a}
 .faces img:nth-child(odd){transform:translateY(8px)}
 .play{display:block;width:100%;max-width:420px;margin:24px auto 10px;min-height:76px;border-radius:20px;border:2px solid #ff9fbd;background:linear-gradient(135deg,#ff4d85,#c92a8f);color:#fff;font-size:1.9rem;font-weight:900;letter-spacing:.12em;text-decoration:none;display:flex;align-items:center;justify-content:center;box-shadow:0 10px 36px #ff4d8588;animation:pulse 2.4s infinite}
 .play:active{transform:scale(.97)}
@@ -35,25 +35,26 @@ footer{margin-top:40px;color:#8a7a99;font-size:.8rem;line-height:1.6}
 <div class="wrap">
   <span class="badge">18+ ADULTS ONLY</span>
   <h1>Erotic Condo</h1>
-  <p class="tag">Own a condo. Collect rent. Move in six-pack neighbours. Earn their trust&hellip; and a lot more. A touch-friendly adult management game.</p>
-  <div class="faces" aria-hidden="true"><img src="assets/wolf.jpg" alt=""><img src="assets/bash.webp" alt=""><img src="assets/dante.webp" alt=""><img src="assets/kai.webp" alt=""><img src="assets/brock.webp" alt=""></div>
+  <p class="tag">Run a condo, collect the rent, and win over four very different residents &mdash; a trainer, a cyborg DJ, a demon-lord dragon and a golden dragon detective. Touch scenes, 20 neighbours and 18+ story chapters, all made for touch screens.</p>
+  <div class="faces" aria-hidden="true"><img src="assets/ares/expr_normal_hd.png" alt=""><img src="assets/zayne/expr_normal_hd.png" alt=""><img src="assets/batzz/expr_normal_hd.png" alt=""><img src="assets/ophion/expr_normal_hd.png" alt=""></div>
   <a class="play" id="play" href="game.html">&#9654; PLAY</a>
   <p class="gate">By tapping <b>PLAY</b> you confirm you are <b>18 or older</b> (or the age of majority where you live) and that adult themes and sexually explicit <b>text</b> are legal for you to view. All characters are fictional adults (21+). Artwork is non-explicit; explicit content is text-only, with an intensity setting. <a href="https://www.google.com/">Under 18? Leave</a></p>
 
   <div class="feat">
-    <div><b>🏢 Run the building</b><span>Build lounges, gyms, saunas, bedrooms and a rooftop. Upgrade furniture. Days pass, rent comes in.</span></div>
-    <div><b>✋ Touch scenes</b><span>Tap, drag or hold on body zones. Watch Arousal and Trust climb through four reaction stages.</span></div>
-    <div><b>💞 Affection &amp; rewards</b><span>Gifts, food and dates build levels that unlock new rooms, scenes and cash.</span></div>
-    <div><b>📱 Made for touch</b><span>Large targets, no zoom or scroll fights, and a one-tap Hide console button for a full-screen view.</span></div>
+    <div><b>🏢 Run the building</b><span>Walk the isometric condo, collect £20 rent a day, feed and befriend residents, decorate rooms.</span></div>
+    <div><b>✋ Touch scenes</b><span>Tap or drag glowing spots on each resident. Arousal and Trust climb through four reaction stages in their own voice.</span></div>
+    <div><b>📖 18+ story chapters</b><span>Five text chapters per resident with choices. Pick Teasing, Steamy or Explicit text in settings.</span></div>
+    <div><b>📱 Made for touch</b><span>Large targets and a one-tap Hide console button for a full-screen view.</span></div>
   </div>
 
   <h2>More games</h2>
   <div class="games">
-    <a class="g" href="https://superlast2001.github.io/wolf-touch-game/"><img src="assets/wolf.jpg" alt=""><div><b>Wolf Touch</b><span>18+ interactive prototype with the gruff wolf-dog. Opens in a new page.</span></div></a>
+    <a class="g" href="classic/"><img src="classic/assets/kai.webp" alt=""><div><b>Classic version</b><span>The original Erotic Condo prototype. Opens the older build.</span></div></a>
+    <a class="g" href="https://superlast2001.github.io/wolf-touch-game/"><img src="classic/assets/wolf.jpg" alt=""><div><b>Wolf Touch</b><span>18+ interactive prototype with the gruff wolf-dog. Opens in a new page.</span></div></a>
   </div>
   <footer>Erotic Condo &middot; 18+ only &middot; Fiction with fictional adult characters only. No real people. Saves stay on your device.</footer>
 </div>
 <script>
-document.getElementById("play").addEventListener("click",function(){try{localStorage.setItem("ec_age_ok","true")}catch(e){}});
+document.getElementById("play").addEventListener("click",function(){try{localStorage.setItem("erocondo_age","1")}catch(e){}});
 </script>
 </body></html>
