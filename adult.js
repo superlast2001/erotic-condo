@@ -45,12 +45,17 @@ function build(){
  addEventListener('resize',layoutArt);addEventListener('keydown',e=>{if(e.code=='Escape'&&open()){if(setOpen)closeSet();else leave();}});
 }
 // ---------- art layout & hotspots ----------
-function layoutArt(){if(!ts&&!rd&&!dt)return;const n=(ts||rd||dt).n,d=D()[n],st=$$('adStage'),art=$$('adArt');if(!st||!art)return;
- const sw=st.clientWidth,sh=st.clientHeight;if(!sw||!sh)return;let W,H,L,T;
- const ratio=(dt&&dt.date&&dt.date.ratio)||d.ratio;
+function layoutArt(){if(!ts&&!rd&&!dt)return;const n=(ts||rd||dt).n,d=D()[n],st=$$('adStage'),art=$$('adArt'),img=$$('adImg');if(!st||!art)return;
+ const sw=st.clientWidth,sh=st.clientHeight;if(sw<2||sh<2)return;let W,H,L,T;
+ let ratio=(dt&&dt.date&&dt.date.ratio)||d.ratio;
+ // Prefer natural pixel ratio so landscape date panels never inherit portrait CG ratio / crop
+ if(img&&img.naturalWidth>16&&img.naturalHeight>16){ratio=img.naturalWidth/img.naturalHeight;}
  if(rd||dt){viewMode='fit';}
- if(viewMode=='fit'){H=Math.min(sh,sw/ratio);W=H*ratio;L=(sw-W)/2;T=(sh-H)/2;}
- else{W=Math.min(sw,sw*.98);H=W/ratio;L=(sw-W)/2;T=viewMode=='up'?0:sh-H;}
+ if(viewMode=='fit'){
+  // object-fit:contain equivalent: entire panel visible, letterbox/pillarbox inside stage
+  if(sw/sh>ratio){H=sh;W=H*ratio;}else{W=sw;H=W/ratio;}
+  L=(sw-W)/2;T=(sh-H)/2;
+ }else{W=Math.min(sw,sw*.98);H=W/ratio;L=(sw-W)/2;T=viewMode=='up'?0:sh-H;}
  art.style.width=W+'px';art.style.height=H+'px';art.style.left=L+'px';art.style.top=T+'px';
  const bl=$$('adBlush');if(ts){const f=d.Z[0].r[0];bl.style.left=(f[0]-4)+'%';bl.style.top=(f[1]-2)+'%';bl.style.width=(f[2]-f[0]+8)+'%';bl.style.height=(f[3]-f[1]+4)+'%';}
  else if(dt){bl.style.opacity=0;}}
@@ -186,8 +191,12 @@ function openDate(n){build();const date=dateOf(n);if(!date){toast('No First Date
  ts=null;rd=null;dt={n,date,pi:0,ar:0,branch:null,busy:0,choice:0,seenIntro:0};viewMode='fit';lastLine='';hold=null;
  $$('ad').style.setProperty('--ac',ACC[n]||'#ffb62e');$$('ad').classList.add('on','date');$$('ad').classList.toggle('outl',!!set.outl);$$('ad').classList.toggle('rm',!!set.rm);
  $$('adCap').classList.add('rd');document.body.classList.add('adon');
+ // Drop any prior touch-scene art box so landscape panels aren't clipped into a portrait frame
+ const art=$$('adArt');if(art){art.style.transition='none';art.style.width='0px';art.style.height='0px';art.style.left='0px';art.style.top='0px';}
  $$('adMeters').dataset.n='';$$('adMeters').innerHTML=`<div class="mr"><b>AROUSAL</b><div class="bar ar"><i id="mAr"></i></div><em id="mSt"></em></div><div class="mr"><b>TRUST</b><div class="bar tr"><i id="mTr"></i></div><em id="mTn"></em></div>`;
  dateShowPanel(0,1);dateSay(explicitTxt(date.intro),date.panels[0].ex||'serious');dateMeters();
+ // Relayout after flex paints so stage has real size (avoids early 0-size return / crop)
+ requestAnimationFrame(()=>{layoutArt();requestAnimationFrame(layoutArt);});
 }
 function dateMeters(){if(!dt)return;const a=A(dt.n),st=stageOf(dt.ar);if($$('mAr'))$$('mAr').style.width=dt.ar+'%';if($$('mSt'))$$('mSt').textContent=STG[st];if($$('mTr'))$$('mTr').style.width=a.trust+'%';if($$('mTn'))$$('mTn').textContent=Math.round(a.trust)+'/100';}
 function dateSay(txt,ex){$$('adNm').innerHTML=dt.n.toUpperCase()+`<i>FIRST DATE · ${dt.pi+1}</i>`;$$('adTx').textContent=txt;face(dt.n,ex||'smile');$$('adCap').scrollTop=0;}
@@ -196,7 +205,7 @@ function dateShowPanel(pi,instant){const panels=dt.date.panels;let p=panels[pi];
  while(p&&p.branch&&dt.branch&&p.branch!=dt.branch){pi++;p=panels[pi];}
  if(!p){return dateFinish();}
  dt.pi=pi;dt.choice=0;const img=$$('adImg');
- const apply=()=>{img.src=p.img;dateBuildHS();layoutArt();img.onload=layoutArt;dateRender();dateMeters();};
+ const apply=()=>{img.src=p.img;dateBuildHS();layoutArt();img.onload=()=>{layoutArt();requestAnimationFrame(layoutArt);};dateRender();dateMeters();requestAnimationFrame(layoutArt);};
  if(instant||set.rm){img.classList.remove('xfade');apply();}
  else{const bk=$$('adBlack');bk.textContent='';bk.classList.add('on');img.classList.add('xfade');
   setTimeout(()=>{apply();bk.classList.remove('on');setTimeout(()=>img.classList.remove('xfade'),280);},420);}
