@@ -94,3 +94,13 @@ body.adon #toasts{z-index:80}
 body.sheeton:not(.adon) #consoleToggle{bottom:auto;left:8px;top:calc(env(safe-area-inset-top) + 88px)}
 
 body.chide #adCap{min-height:0;margin-bottom:0;padding:5px 8px}body.chide #adCap .fc{width:36px;height:36px}body.chide #adCap .tx{font-size:12.5px}
+
+/* First Date touchable story */
+#ad.date #adArt>img{transition:opacity .35s ease}
+#ad.date #adArt>img.xfade{opacity:0}
+#ad.date #adCap.rd{max-height:30vh}
+.srow .datebtn{background:linear-gradient(#ffe36e,#efa829)!important;border-color:#5a3818;min-width:72px}
+.srow .datebtn.st-lock{filter:grayscale(.5) brightness(.9);background:linear-gradient(#ddd,#bbb)!important}
+.srow .datebtn.st-seen{background:linear-gradient(#ffc4d0,#ff6a86)!important;color:#fff}
+.srow .datebtn.st-new{box-shadow:0 0 0 2px #ff3a7a88}
+#adCon .ab.go[disabled]{filter:grayscale(.85);opacity:.65}

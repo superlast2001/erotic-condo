@@ -19,8 +19,8 @@ function explicitTxt(o){let t=o.t||'';if(set.int>=1&&o.s)t+=' '+o.s;if(set.int>=
 function pool(n,z,st){const d=D()[n],sub=s=>s.replace(/\{z\}/g,z.my).replace(/\{Z\}/g,cap(z.my));
  let p=z.L[st].slice().concat(d.G[st].map(sub));if(set.int>=1)p=p.concat(d.H[st]);if(set.int>=2)p=p.concat(d.X[st]);return p;}
 // ---------- state ----------
-let ts=null,rd=null,lastLine='',hold=null,viewMode='fit',idleT=0,capT=0,setOpen=false,ticker=null;
-const open=()=>!!(ts||rd);
+let ts=null,rd=null,dt=null,lastLine='',hold=null,viewMode='fit',idleT=0,capT=0,setOpen=false,ticker=null;
+const open=()=>!!(ts||rd||dt);
 // ---------- console toggle ----------
 function applyConsole(h){document.body.classList.toggle('chide',h);try{localStorage.setItem(KEY_CON,h?'1':'0');}catch(e){}
  const b=$$('consoleToggle');if(b)b.textContent=h?'▲ Show console':'▼ Hide console';
@@ -45,26 +45,28 @@ function build(){
  addEventListener('resize',layoutArt);addEventListener('keydown',e=>{if(e.code=='Escape'&&open()){if(setOpen)closeSet();else leave();}});
 }
 // ---------- art layout & hotspots ----------
-function layoutArt(){if(!ts&&!rd)return;const d=D()[(ts||rd).n],st=$$('adStage'),art=$$('adArt');if(!st||!art)return;
+function layoutArt(){if(!ts&&!rd&&!dt)return;const n=(ts||rd||dt).n,d=D()[n],st=$$('adStage'),art=$$('adArt');if(!st||!art)return;
  const sw=st.clientWidth,sh=st.clientHeight;if(!sw||!sh)return;let W,H,L,T;
- if(rd){viewMode='fit';}
- if(viewMode=='fit'){H=Math.min(sh,sw/d.ratio);W=H*d.ratio;L=(sw-W)/2;T=(sh-H)/2;}
- else{W=Math.min(sw,sw*.98);H=W/d.ratio;L=(sw-W)/2;T=viewMode=='up'?0:sh-H;}
+ const ratio=(dt&&dt.date&&dt.date.ratio)||d.ratio;
+ if(rd||dt){viewMode='fit';}
+ if(viewMode=='fit'){H=Math.min(sh,sw/ratio);W=H*ratio;L=(sw-W)/2;T=(sh-H)/2;}
+ else{W=Math.min(sw,sw*.98);H=W/ratio;L=(sw-W)/2;T=viewMode=='up'?0:sh-H;}
  art.style.width=W+'px';art.style.height=H+'px';art.style.left=L+'px';art.style.top=T+'px';
- const bl=$$('adBlush');if(ts){const f=d.Z[0].r[0];bl.style.left=(f[0]-4)+'%';bl.style.top=(f[1]-2)+'%';bl.style.width=(f[2]-f[0]+8)+'%';bl.style.height=(f[3]-f[1]+4)+'%';}}
+ const bl=$$('adBlush');if(ts){const f=d.Z[0].r[0];bl.style.left=(f[0]-4)+'%';bl.style.top=(f[1]-2)+'%';bl.style.width=(f[2]-f[0]+8)+'%';bl.style.height=(f[3]-f[1]+4)+'%';}
+ else if(dt){bl.style.opacity=0;}}
 function buildHS(){const d=D()[ts.n],box=$$('adHS');box.innerHTML='';const lv=relLv(ts.n);
  d.Z.forEach((z,zi)=>z.r.forEach(r=>{const e=document.createElement('div');e.className='hs'+(lv<z.lv?' lk':'');e.dataset.z=zi;e.style.cssText=`left:${r[0]}%;top:${r[1]}%;width:${r[2]-r[0]}%;height:${r[3]-r[1]}%`;e.innerHTML='<span>'+(lv<z.lv?'🔒 ':'')+z.n+'</span>';box.appendChild(e);}));}
 function zoneAt(px,py){const d=D()[ts.n];let best=-1,ba=1e9;d.Z.forEach((z,zi)=>z.r.forEach(r=>{if(px>=r[0]&&px<=r[2]&&py>=r[1]&&py<=r[3]){const a=(r[2]-r[0])*(r[3]-r[1]);if(a<ba){ba=a;best=zi;}}}));return best;}
 // ---------- pointer ----------
-function pDown(e){if(!ts||ts.fin)return;e.preventDefault();try{e.target.setPointerCapture(e.pointerId);}catch(_){}
+function pDown(e){if(dt){return datePDown(e);}if(!ts||ts.fin)return;e.preventDefault();try{e.target.setPointerCapture(e.pointerId);}catch(_){}
  const r=$$('adArt').getBoundingClientRect(),px=(e.clientX-r.left)/r.width*100,py=(e.clientY-r.top)/r.height*100,z=zoneAt(px,py);
  ripple(e.clientX-r.left,e.clientY-r.top);hold={id:e.pointerId,z,t:performance.now(),x:e.clientX,y:e.clientY};
  if(z<0){hint();return;}touchZone(z,1,e.clientX-r.left,e.clientY-r.top);}
-function pMove(e){if(!hold||hold.id!=e.pointerId||!ts||ts.fin)return;const r=$$('adArt').getBoundingClientRect(),px=(e.clientX-r.left)/r.width*100,py=(e.clientY-r.top)/r.height*100,z=zoneAt(px,py),now=performance.now();
+function pMove(e){if(dt){return datePMove(e);}if(!hold||hold.id!=e.pointerId||!ts||ts.fin)return;const r=$$('adArt').getBoundingClientRect(),px=(e.clientX-r.left)/r.width*100,py=(e.clientY-r.top)/r.height*100,z=zoneAt(px,py),now=performance.now();
  if(z<0)return;const mv=Math.hypot(e.clientX-hold.x,e.clientY-hold.y);
  if((z!=hold.z)||(mv>14&&now-hold.t>380)){hold.z=z;hold.t=now;hold.x=e.clientX;hold.y=e.clientY;touchZone(z,.6,e.clientX-r.left,e.clientY-r.top);}}
 function pUp(e){if(hold&&hold.id==e.pointerId)hold=null;}
-let hintT=0;function hint(){if(performance.now()-hintT<4000)return;hintT=performance.now();say(ts.n,'(Try the highlighted spots, or use the zone buttons below.)',0,'normal');}
+let hintT=0;function hint(){if(performance.now()-hintT<4000)return;hintT=performance.now();say((ts||dt).n,'(Try the highlighted spots, or use the zone buttons below.)',0,'normal');}
 // ---------- effects ----------
 function ripple(x,y){if(set.rm)return;const f=$$('adFx'),e=document.createElement('div');e.className='fxr';e.style.left=x+'px';e.style.top=y+'px';f.appendChild(e);setTimeout(()=>e.remove(),520);}
 function fxAt(kind,x,y,n=1){if(set.rm)return;const f=$$('adFx');for(let i=0;i<n;i++){const e=document.createElement('div');e.className=kind;e.style.left=(x+(Math.random()*40-20))+'px';e.style.top=(y+(Math.random()*20-10))+'px';e.style.setProperty('--dx',(Math.random()*50-25)+'px');if(kind=='fxh')e.textContent=rnd(['♥','♥','♡','💗']);f.appendChild(e);setTimeout(()=>e.remove(),1900);}}
@@ -136,8 +138,14 @@ function finEnd(){const n=ts.n,d=D()[n],a=A(n),bk=$$('adBlack');ts.busy=1;$$('ad
 // ---------- story reader ----------
 function chapters(n){return D()[n].CH;}
 function chapterStatus(n,i){const c=chapters(n)[i],p=R(n).p,a=A(n);return p<c.need?'lock':a.ch[c.id]?'seen':'new';}
-function storyRowsA(n){const C=chapters(n);return`<div class="zrow srow"><b>STORY</b>${C.map((c,i)=>{const st=chapterStatus(n,i);return`<button class="st-${st}" onclick="ADULTUI.chapter('${n}',${i})" title="${st=='lock'?'Unlocks at ♥'+c.need:c.title}">${st=='lock'?'🔒':(i+1)}<small>${st=='lock'?'♥'+c.need:st=='seen'?'✓':'NEW'}</small></button>`;}).join('')}</div>
- <div class="slegend">18+ story chapters · 🔒 locked · NEW unlocked · ✓ read — tap to read (replayable)</div>`;}
+function dateOf(n){return D()[n]&&D()[n].DATE;}
+function dateStatus(n){const d=dateOf(n);if(!d)return null;const p=R(n).p,a=A(n);return p<d.need?'lock':(a.ch[d.id]||localGet('erocondo_'+d.id))?'seen':'new';}
+function localGet(k){try{return localStorage.getItem(k)=='1';}catch(e){return 0;}}
+function localSet(k,v){try{localStorage.setItem(k,v?'1':'0');}catch(e){}}
+function storyRowsA(n){const C=chapters(n);const dd=dateOf(n);let dateBtn='';
+ if(dd){const st=dateStatus(n);dateBtn=`<button class="st-${st} datebtn" onclick="ADULTUI.openDate('${n}')" title="${st=='lock'?'Unlocks at Crush (♥'+dd.need+')':dd.title+' · touchable'}">${st=='lock'?'🔒':'💋'}<small>${st=='lock'?'♥'+dd.need:st=='seen'?'✓ DATE':'FIRST DATE'}</small></button>`;}
+ return`<div class="zrow srow"><b>STORY</b>${dateBtn}${C.map((c,i)=>{const st=chapterStatus(n,i);return`<button class="st-${st}" onclick="ADULTUI.chapter('${n}',${i})" title="${st=='lock'?'Unlocks at ♥'+c.need:c.title}">${st=='lock'?'🔒':(i+1)}<small>${st=='lock'?'♥'+c.need:st=='seen'?'✓':'NEW'}</small></button>`;}).join('')}</div>
+ <div class="slegend">18+ · FIRST DATE = touchable panels (picture changes) · chapters · 🔒 locked · ✓ done</div>`;}
 function chapter(n,i){build();const c=chapters(n)[i],p=R(n).p;if(p<c.need){toast(`Chapter ${i+1} unlocks at ♥ ${c.need} (you have ♥ ${p})`);if(typeof sfx=='function')sfx(180);return;}
  if(typeof closeSheet=='function')closeSheet();ts=null;rd={n,i,c,k:0,q:null,extra:null,res:null};viewMode='fit';
  $$('ad').style.setProperty('--ac',ACC[n]);$$('adImg').src=D()[n].img;$$('adCap').classList.add('rd');$$('ad').classList.add('on');$$('ad').classList.remove('outl');$$('ad').classList.toggle('rm',!!set.rm);document.body.classList.add('adon');
@@ -164,16 +172,122 @@ function pick(oi){const pg=rd.c.pages[rd.k],o=pg.o[oi],n=rd.n,a=A(n);
  const go=()=>{rd.k++;rdPage();};$$('adCon').querySelector('#rNext').onclick=go;$$('adMini').querySelector('#rNext2').onclick=go;}
 function rdNext(){rd.k++;rdPage();}
 function rdEnd(){const n=rd.n,c=rd.c,a=A(n),first=!a.ch[c.id];a.ch[c.id]=1;if(first){gain(n,4,'chapter');a.trust=Math.min(100,a.trust+2);}save(1);const m=n;leave();toast(first?`Chapter read · ♥ +4`:'Chapter replayed');openProfile(m);}
+
+// ---------- First Date (touchable panel story; picture changes) ----------
+function datePanel(){return dt.date.panels[dt.pi];}
+function dateZones(){const p=datePanel();return p&&p.Z||[];}
+function dateZoneAt(px,py){const Z=dateZones();let best=-1,ba=1e9;Z.forEach((z,zi)=>(z.r||[]).forEach(r=>{if(px>=r[0]&&px<=r[2]&&py>=r[1]&&py<=r[3]){const a=(r[2]-r[0])*(r[3]-r[1]);if(a<ba){ba=a;best=zi;}}}));return best;}
+function dateBuildHS(){const box=$$('adHS');box.innerHTML='';const Z=dateZones(),a=A(dt.n);
+ Z.forEach((z,zi)=>z.r.forEach(r=>{const gate=z.gate&&a.trust<40;const e=document.createElement('div');e.className='hs'+(gate?' lk':'');e.dataset.z=zi;e.style.cssText=`left:${r[0]}%;top:${r[1]}%;width:${r[2]-r[0]}%;height:${r[3]-r[1]}%`;e.innerHTML='<span>'+(gate?'🔒 ':'')+z.n+'</span>';box.appendChild(e);}));}
+function openDate(n){build();const date=dateOf(n);if(!date){toast('No First Date for '+n);return;}
+ if(!S.unlocked.includes(n)){toast('Move in this resident first');return;}
+ const p=R(n).p;if(p<date.need){toast(`First Date unlocks at Crush (♥ ${date.need}) — you have ♥ ${p}`);if(typeof sfx=='function')sfx(180);return;}
+ if(typeof closeSheet=='function')closeSheet();
+ ts=null;rd=null;dt={n,date,pi:0,ar:0,branch:null,busy:0,choice:0,seenIntro:0};viewMode='fit';lastLine='';hold=null;
+ $$('ad').style.setProperty('--ac',ACC[n]||'#ffb62e');$$('ad').classList.add('on','date');$$('ad').classList.toggle('outl',!!set.outl);$$('ad').classList.toggle('rm',!!set.rm);
+ $$('adCap').classList.add('rd');document.body.classList.add('adon');
+ $$('adMeters').dataset.n='';$$('adMeters').innerHTML=`<div class="mr"><b>AROUSAL</b><div class="bar ar"><i id="mAr"></i></div><em id="mSt"></em></div><div class="mr"><b>TRUST</b><div class="bar tr"><i id="mTr"></i></div><em id="mTn"></em></div>`;
+ dateShowPanel(0,1);dateSay(explicitTxt(date.intro),date.panels[0].ex||'serious');dateMeters();
+}
+function dateMeters(){if(!dt)return;const a=A(dt.n),st=stageOf(dt.ar);if($$('mAr'))$$('mAr').style.width=dt.ar+'%';if($$('mSt'))$$('mSt').textContent=STG[st];if($$('mTr'))$$('mTr').style.width=a.trust+'%';if($$('mTn'))$$('mTn').textContent=Math.round(a.trust)+'/100';}
+function dateSay(txt,ex){$$('adNm').innerHTML=dt.n.toUpperCase()+`<i>FIRST DATE · ${dt.pi+1}</i>`;$$('adTx').textContent=txt;face(dt.n,ex||'smile');$$('adCap').scrollTop=0;}
+function dateShowPanel(pi,instant){const panels=dt.date.panels;let p=panels[pi];
+ // skip branch panels that don't match
+ while(p&&p.branch&&dt.branch&&p.branch!=dt.branch){pi++;p=panels[pi];}
+ if(!p){return dateFinish();}
+ dt.pi=pi;dt.choice=0;const img=$$('adImg');
+ const apply=()=>{img.src=p.img;dateBuildHS();layoutArt();img.onload=layoutArt;dateRender();dateMeters();};
+ if(instant||set.rm){img.classList.remove('xfade');apply();}
+ else{const bk=$$('adBlack');bk.textContent='';bk.classList.add('on');img.classList.add('xfade');
+  setTimeout(()=>{apply();bk.classList.remove('on');setTimeout(()=>img.classList.remove('xfade'),280);},420);}
+}
+function dateRender(){const p=datePanel(),n=dt.n;if(!p)return;
+ const ready=dt.ar>=(p.needAr||0)||p.end||p.cont;
+ let con='';
+ if(p.q&&!dt.choice){
+  $$('adNm').innerHTML=n.toUpperCase()+`<i>FIRST DATE · ${dt.pi+1} · CHOICE</i>`;
+  const wrap=document.createElement('div');const body=document.createElement('div');body.textContent=explicitTxt(p);wrap.appendChild(body);
+  const q=document.createElement('div');q.className='q';q.style.marginTop='6px';q.textContent=p.q;wrap.appendChild(q);
+  $$('adTx').innerHTML='';$$('adTx').appendChild(wrap);
+  con=p.o.map((o,oi)=>`<button class="ab opt" data-o="${oi}">${o.a}</button>`).join('');
+  con+=`<div style="flex-basis:100%;font:800 11px system-ui;color:#fff8;padding:2px 4px">Or touch him first — choices stay open</div>`;}
+ else if(p.end){con=`<button class="ab go" id="dEnd">FINISH DATE ✓</button>`;
+  $$('adNm').innerHTML=n.toUpperCase()+`<i>FIRST DATE · FINALE</i>`;}
+ else{const label=ready?(p.cont||p.finale?'CONTINUE ▶':'NEXT PANEL ▶'):'KEEP TOUCHING…';
+  con=`<button class="ab go" id="dNext"${ready?'':' disabled'}>${label}</button>`;
+  if(!ready)con+=`<div style="flex:1;font:800 11px system-ui;color:#fff8;align-self:center;padding:0 6px">Touch glowing spots · Arousal ${Math.floor(dt.ar)}/${p.needAr}</div>`;}
+ // zone chips
+ const chips=dateZones().map((z,i)=>{const gate=z.gate&&A(n).trust<40;return`<button class="zc${gate?' lk':''}" data-z="${i}">${gate?'🔒 ':''}${z.n}</button>`;}).join('');
+ $$('adCon').innerHTML=`<div id="adCh">${chips}</div><div class="arow" style="flex-wrap:wrap">${con}</div>`;
+ $$('adMini').innerHTML=con.replace(/id="dNext"/g,'id="dNext2"').replace(/id="dEnd"/g,'id="dEnd2"');
+ $$('adCh').onclick=e=>{const b=e.target.closest('.zc');if(!b||!dt||dt.busy)return;dateTouch(+b.dataset.z,1.1);};
+ $$('adCon').querySelectorAll('.opt').forEach(b=>b.onclick=()=>datePick(+b.dataset.o));
+ $$('adMini').querySelectorAll('.opt').forEach(b=>b.onclick=()=>datePick(+b.dataset.o));
+ const nx=$$('dNext'),nx2=$$('dNext2');if(nx)nx.onclick=dateContinue;if(nx2)nx2.onclick=dateContinue;
+ const en=$$('dEnd'),en2=$$('dEnd2');if(en)en.onclick=dateFinish;if(en2)en2.onclick=dateFinish;
+ if(!p.q||dt.choice){/* keep current say */} else {face(n,p.ex||'smile');}
+}
+function datePick(oi){const p=datePanel(),o=p.o[oi],a=A(dt.n);if(!o||dt.busy)return;dt.choice=1;
+ if(o.trust)a.trust=Math.min(100,a.trust+o.trust);if(o.hearts)gain(dt.n,o.hearts,'date');if(o.ar)dt.ar=Math.min(100,dt.ar+o.ar);
+ if(o.branch)dt.branch=o.branch;
+ dateSay(explicitTxt(o.line||o),p.ex||'blushing');dateMeters();
+ const go=()=>{const next=o.next!=null?o.next:dt.pi+1;dateAdvanceTo(next);};
+ $$('adCon').innerHTML=`<div class="arow"><button class="ab go" id="dNext">NEXT PANEL ▶</button></div>`;
+ $$('adMini').innerHTML=`<button class="ab go" id="dNext2">NEXT PANEL ▶</button>`;
+ $$('dNext').onclick=go;$$('dNext2').onclick=go;
+ if(typeof sfx=='function')sfx(880);}
+function dateContinue(){if(!dt||dt.busy)return;const p=datePanel();
+ if(p.end)return dateFinish();
+ if(p.q&&!dt.choice){toast('Pick a choice first');return;}
+ if(dt.ar<(p.needAr||0)&&!p.cont&&!p.finale){dateSay('(Touch him a little more — raise Arousal, or keep exploring.)',p.ex);return;}
+ // find next panel index, honouring branch
+ let ni=dt.pi+1;const panels=dt.date.panels;
+ while(ni<panels.length&&panels[ni].branch&&dt.branch&&panels[ni].branch!=dt.branch)ni++;
+ // if next is a branch panel and we have no branch yet, skip until non-branch or matching
+ while(ni<panels.length&&panels[ni].branch&&!dt.branch)ni++;
+ dateAdvanceTo(ni);}
+function dateAdvanceTo(ni){const panels=dt.date.panels;if(ni>=panels.length)return dateFinish();
+ // skip mismatched branches
+ while(ni<panels.length&&panels[ni].branch&&dt.branch&&panels[ni].branch!=dt.branch)ni++;
+ if(ni>=panels.length)return dateFinish();
+ const p=panels[ni];dateSay(explicitTxt(p),p.ex||'smile');dateShowPanel(ni,0);}
+function dateFinish(){if(!dt)return;const n=dt.n,date=dt.date,a=A(n),first=!a.ch[date.id];
+ a.ch[date.id]=1;localSet('erocondo_'+date.id,1);
+ if(first){gain(n,6,'first_date');a.trust=Math.min(100,a.trust+4);S.money+=30;toast('First Date complete · ♥ +6 · +£30');}
+ else{gain(n,1,'date_replay');toast('First Date replayed');}
+ if(typeof updateHud=='function')updateHud();save(1);const m=n;leave();openProfile(m);}
+function datePDown(e){if(!dt||dt.busy)return;e.preventDefault();try{e.target.setPointerCapture(e.pointerId);}catch(_){}
+ const r=$$('adArt').getBoundingClientRect(),px=(e.clientX-r.left)/r.width*100,py=(e.clientY-r.top)/r.height*100,z=dateZoneAt(px,py);
+ ripple(e.clientX-r.left,e.clientY-r.top);hold={id:e.pointerId,z,t:performance.now(),x:e.clientX,y:e.clientY};
+ if(z<0){hint();return;}dateTouch(z,1,e.clientX-r.left,e.clientY-r.top);}
+function datePMove(e){if(!hold||hold.id!=e.pointerId||!dt||dt.busy)return;const r=$$('adArt').getBoundingClientRect(),px=(e.clientX-r.left)/r.width*100,py=(e.clientY-r.top)/r.height*100,z=dateZoneAt(px,py),now=performance.now();
+ if(z<0)return;const mv=Math.hypot(e.clientX-hold.x,e.clientY-hold.y);
+ if((z!=hold.z)||(mv>14&&now-hold.t>380)){hold.z=z;hold.t=now;hold.x=e.clientX;hold.y=e.clientY;dateTouch(z,.55,e.clientX-r.left,e.clientY-r.top);}}
+function dateTouch(zi,strength,x,y){if(!dt||dt.busy)return;const p=datePanel(),Z=dateZones(),z=Z[zi];if(!z)return;
+ const n=dt.n,a=A(n);if(z.gate&&a.trust<40){dateSay('"Earn a little more trust first. A detective never rushes the good evidence."',p.ex);dateMeters();return;}
+ flashZone(zi);a.trust=Math.min(100,a.trust+.45*strength);
+ const gainv=6.5*z.sens*strength*(.75+a.trust/100);dt.ar=Math.min(100,dt.ar+gainv);
+ const lines=(p.touch&&p.touch[z.k])||[];let txt=lines.length?rnd(lines.filter(l=>l!=lastLine).concat(lines)):'…';
+ if(!lines.length)txt=explicitTxt(p);
+ lastLine=txt;dateSay(txt,p.ex||D()[n].expr[stageOf(dt.ar)]);
+ if(typeof sfx=='function')sfx(420+stageOf(dt.ar)*90);
+ if(x!=null){fxAt('fxh',x,y,stageOf(dt.ar)>=2?3:1);if(stageOf(dt.ar)>=2)fxAt('fxs',x,y,1);}
+ else{const art=$$('adArt').getBoundingClientRect();const rr=z.r[0];fxAt('fxh',(rr[0]+rr[2])/200*art.width,(rr[1]+rr[3])/200*art.height,1);}
+ dateMeters();
+ // auto-enable continue when threshold hit
+ if(dt.ar>=(p.needAr||0)&&!p.q)dateRender();
+ else if(p.q&&!dt.choice){/* stay on choice */} else dateRender();
+}
 // ---------- leave ----------
-function leave(){if(!ts&&!rd){return;}const wasTs=!!ts;ts=null;rd=null;hold=null;$$('ad').classList.remove('on');document.body.classList.remove('adon','fin');$$('adBlack').classList.remove('on');$$('adArt').classList.remove('shake');
+function leave(){if(!ts&&!rd&&!dt){return;}ts=null;rd=null;dt=null;hold=null;$$('ad').classList.remove('on','date');document.body.classList.remove('adon','fin');$$('adBlack').classList.remove('on');$$('adArt').classList.remove('shake','xfade');
  save(1);if(typeof updateHud=='function')updateHud();}
 // ---------- settings ----------
 function openSet(){build();setOpen=true;const b=$$('adSetBox');
- b.innerHTML=`<h3>18+ SETTINGS</h3><p>Fiction for adults only. All characters are adult fictional beings. Text only — art is never explicit.</p><b style="font-size:12px">TEXT INTENSITY</b><div class="seg"><button data-i="0" class="${set.int==0?'on':''}">Teasing</button><button data-i="1" class="${set.int==1?'on':''}">Steamy</button><button data-i="2" class="${set.int==2?'on':''}">Explicit</button></div>
+ b.innerHTML=`<h3>18+ SETTINGS</h3><p>Fiction for adults only. All characters are adult fictional beings. Text intensity filters dialogue. First Date panels may become explicit as the story advances.</p><b style="font-size:12px">TEXT INTENSITY</b><div class="seg"><button data-i="0" class="${set.int==0?'on':''}">Teasing</button><button data-i="1" class="${set.int==1?'on':''}">Steamy</button><button data-i="2" class="${set.int==2?'on':''}">Explicit</button></div>
  <button class="tg ${set.rm?'on':''}" id="sRm">Reduced motion: ${set.rm?'ON':'OFF'}</button><button class="tg ${set.outl?'on':''}" id="sOut">Hotspot outlines: ${set.outl?'ON':'OFF'}</button><button class="cl" id="sCl">DONE</button>`;
  b.querySelectorAll('.seg button').forEach(x=>x.onclick=()=>{set.int=+x.dataset.i;saveSet();openSet();});
  $$('sRm').onclick=()=>{set.rm=!set.rm;saveSet();if($$('ad'))$$('ad').classList.toggle('rm',set.rm);openSet();};
- $$('sOut').onclick=()=>{set.outl=!set.outl;saveSet();if($$('ad'))$$('ad').classList.toggle('outl',set.outl);if(ts){render();meters();}openSet();};
+ $$('sOut').onclick=()=>{set.outl=!set.outl;saveSet();if($$('ad'))$$('ad').classList.toggle('outl',set.outl);if(ts){render();meters();}if(dt)dateBuildHS();openSet();};
  $$('sCl').onclick=closeSet;$$('adSet').classList.add('on');}
 function closeSet(){setOpen=false;$$('adSet').classList.remove('on');}
 // ---------- game-mode mini bar + buttons ----------
@@ -184,7 +298,7 @@ function mini(){const m=$$('mini');if(!m||!document.body.classList.contains('chi
 function init(){build();const _t=window.toast;window.toast=function(t){_t(t);if(open()){const b=$$('adIn');if(!b)return;const e=document.createElement('div');e.textContent=t;e.style.cssText='position:absolute;left:50%;top:64px;transform:translateX(-50%);background:#201830ee;color:#fff;border:1px solid #ffe16a;border-radius:13px;padding:6px 13px;font:800 12px system-ui;z-index:9;max-width:86%;text-align:center;pointer-events:none';b.appendChild(e);setTimeout(()=>e.remove(),2400);}};let h=false;try{h=localStorage.getItem(KEY_CON)=='1';}catch(e){}applyConsole(h);
  const bt=$$('bTouch'),bn=$$('bNext');if(bt)bt.onclick=()=>{const t=talkTarget();if(t)openTouch(t);else toast('Pick a resident first');};if(bn)bn.onclick=nextHour;
  setInterval(()=>{mini();const sh=$$('sheet');document.body.classList.toggle('sheeton',!!(sh&&sh.classList.contains('open')));},300);}
-window.ADULTUI={init,open:()=>open(),openTouch,chapter,storyRows:storyRowsA,settings:openSet,nextHour,toggleConsole,leave,
- state:()=>ts?{n:ts.n,ar:ts.ar,fin:ts.fin,stage:stageOf(ts.ar)}:null,
+window.ADULTUI={init,open:()=>open(),openTouch,openDate,chapter,storyRows:storyRowsA,settings:openSet,nextHour,toggleConsole,leave,
+ state:()=>ts?{n:ts.n,ar:ts.ar,fin:ts.fin,stage:stageOf(ts.ar)}:dt?{n:dt.n,ar:dt.ar,panel:dt.pi,mode:'date',branch:dt.branch}:null,
  _set:set,zoneAt:(n,x,y)=>{ts={n};const z=zoneAt(x,y);ts=null;return z;}};
 })();
